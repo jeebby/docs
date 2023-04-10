@@ -183,6 +183,16 @@ Table users [headercolor: #9925be]
     profile_photo_path varhcar(2048) [null]
     created_at timestamp [null]
     updated_at timestamp [null]
+    jeebby_system tinyint(1) [default: 0, Note: 'Determin if this user is a Jebby system user.']
+
+    Note: '''
+    ### Jeebby system user
+    If `jeebby_system` is 1, then the name is **Jeebby $rand(6)** and email is **jeebby_$rand(6)@inter.al
+    The user is joined to a team and is assigned the role **Jeebby API**. 
+    An access token is generated with the API permissions.
+    This access token is then used for the flows to write/read to the Jeebby API from Node-RED.
+    These are the Output and Storage API nodes.
+    '''
 
     Indexes
     {
