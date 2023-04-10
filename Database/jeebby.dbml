@@ -1,0 +1,9 @@
+Project Jeebby {
+    database_type: 'MariaDB'
+    Note: '''
+        #Jeebby database
+        Jeebby database use the structure of Laravel/Jetstream with Teams.
+        This base is sufficient enough for this project. This database documentation is 
+        divided in four categories: laravel/jetstream, jeebby, 
+    '''
+}
