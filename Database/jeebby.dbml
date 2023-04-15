@@ -37,6 +37,24 @@ TableGroup "Laravel Jetstream"
 TableGroup "Jeebby"
 {
     flows
+    flow_types
+    flow_type_fields
+    installations
+    team_flow_type
+    team_flow_type_fields
+    flow_parameters
+    installation_parameters
+}
+
+TableGroup "Storage"
+{
+    flow_storage_fields
+    storage_values
+}
+
+TableGroup "Monitor"
+{
+    installation_statusses
 }
 
 Table failed_jobs [headercolor: #be4d25]
@@ -126,6 +144,7 @@ Table teams [headercolor: #087f23]
     personal_team tinyint(1)
     created_at timestamp [null]
     updated_at timestamp [null]
+    deleted_at timestamp [null]
 
     Indexes
     {
@@ -183,6 +202,7 @@ Table users [headercolor: #9925be]
     profile_photo_path varhcar(2048) [null]
     created_at timestamp [null]
     updated_at timestamp [null]
+    deleted_at timestamp [null]
     jeebby_system tinyint(1) [default: 0, Note: 'Determin if this user is a Jebby system user.']
 
     Note: '''
@@ -203,5 +223,229 @@ Table users [headercolor: #9925be]
 
 Table flows [headercolor: #49be25]
 {
-    id uuid [pk]
+    id uuid
+    name varchar(30)
+    created_at timestamp [null]
+    updated_at timestamp [null]
+    deleted_at timestamp [null]
+
+    Indexes
+    {
+        id [pk]
+        name [name: 'flows_name_unique', unique]
+    }
+}
+
+Table flow_types [headercolor: #49be25]
+{
+    id uuid
+    flow_id uuid [ref: > flows.id, null]
+    name varchar(30)
+    created_at timestamp [null]
+    updated_at timestamp [null]
+    deleted_at timestamp [null]
+
+    note: '''
+    Node-RED flows uses config types. Here are the definitions and the fields are defined in flow_type_fields.
+    In the jeebby_type_values the team can store the values for other flows that uses the same config type.
+    Types that are shared, don't belong to a specific flow.
+    '''
+
+    Indexes
+    {
+        id [pk]
+        (flow_id, name) [name: 'flow_types_flow_id_name_unique', unique]
+    }
+}
+
+Table flow_type_fields [headercolor: #49be25]
+{
+    id int [increment]
+    flow_type_id uuid [ref: > flow_types.id]
+    name varchar(30)
+    type "tinyint unsigned"
+    is_required boolean [default: true]
+    is_secret boolean
+    config_flow_type_id uuid [ref: > flow_types.id, null, note: 'When type is config then this field reference to the flow_type id']
+    created_at timestamp [null]
+    updated_at timestamp [null]
+    deleted_at timestamp [null]
+
+    Note: '''
+    Types are:
+      - text
+      - int
+      - decimal
+      - date
+      - time
+      - datetime
+      - boolean
+      - config
+    '''
+
+    Indexes
+    {
+        id [pk]
+        (flow_type_id, name) [name: 'flow_type_fields_flow_type_id_name_unique', unique]
+    }
+}
+
+Table installations [headercolor: #49be25]
+{
+    id uuid
+    flow_id uuid [ref: > flows.id]
+    team_id "bigint unsigned" [ref: > teams.id]
+    created_at timestamp [null]
+    updated_at timestamp [null]
+
+    Indexes
+    {
+        id [pk]
+    }
+}
+
+Table flow_storage_fields [headercolor: #49be25]
+{
+    id int [increment]
+    flow_id uuid [ref: > flows.id]
+    name varchar(30) [note: 'name of the field']
+    type "tinyint unsigned"
+    input boolean [default: false, note: 'This field is written to from the flow.']
+    output boolean [default: false, note: 'This field is read by the flow.']
+    created_at timestamp [null]
+    updated_at timestamp [null]
+    deleted_at timestamp [null]
+
+    Note: '''
+    Types are:
+      - text
+      - int
+      - decimal
+      - date
+      - time
+      - datetime
+      - boolean
+      - json
+      - array
+    '''
+
+    Indexes
+    {
+        id [pk]
+        (flow_id, name) [name: 'flow_storage_fields_flow_id_name_unique', unique]
+    }
+}
+
+Table team_flow_type [headercolor: #49be25]
+{
+    id uuid
+    team_id int [ref: > teams.id]
+    flow_type_id uuid [ref: > flow_types.id]
+    name varchar(30) [note: 'Is the identifier for the flow type for this team.']
+    created_at timestamp [null]
+    updated_at timestamp [null]
+    deleted_at timestamp [null]
+
+    Indexes
+    {
+        id [pk]
+        (team_id, flow_type_id, name) [name: 'jeebby_type_values_team_id_flow_type_id_name_unique', unique]
+    }
+}
+
+Table team_flow_type_fields [headercolor: #49be25]
+{
+    id int [increment]
+    team_flow_type uuid [ref: > team_flow_type.id]
+    flow_type_field_id id [ref: > flow_type_fields.id]
+    value varchar(100)
+    created_at timestamp [null]
+    updated_at timestamp [null]
+    deleted_at timestamp [null]
+
+    Indexes
+    {
+        id [pk]
+        (team_flow_type, flow_type_field_id) [name: 'team_flow_type_fields_unique', unique]
+    }
+}
+
+Table flow_parameters [headercolor: #49be25]
+{
+    id uuid
+    flow_id uuid [ref: > flows.id]
+    name varchar(30)
+    type "tinyint unsigned"
+    is_required boolean
+    is_secret boolean
+    created_at timestamp [null]
+    updated_at timestamp [null]
+    deleted_at timestamp [null]
+
+    Note: '''
+    Types are:
+      - text
+      - int
+      - decimal
+      - date
+      - time
+      - datetime
+      - boolean
+      - config
+    '''
+
+    Indexes
+    {
+        id [pk]
+        (flow_id, name) [name: 'flow_parameters_flow_id_name_unique', unique]
+    }
+}
+
+Table installation_parameters [headercolor: #49be25]
+{
+    id int [increment]
+    flow_parameter_id uuid [ref: > flow_parameters.id]
+    team_id int [ref: > teams.id]
+    value varchar(100)
+    created_at timestamp [null]
+    updated_at timestamp [null]
+    deleted_at timestamp [null]
+
+    Indexes
+    {
+        id [pk]
+        (flow_parameter_id, team_id) [name: 'installation_parameters_parameter_id_team_id_unique', unique]
+    }
+}
+
+Table storage_values [headercolor: #49be25]
+{
+    id int [increment]
+    installation_id uuid [ref: > installations.id]
+    flow_storage_field_id int [ref: > flow_storage_fields.id]
+    value varchar(100)
+    created_at timestamp [null]
+    updated_at timestamp [null]
+    deleted_at timestamp [null]
+
+    Indexes
+    {
+        id [pk]
+    }
+}
+
+Table installation_statusses [headercolor: #49be25]
+{
+    id int [increment]
+    installation_id uuid [ref: > installations.id]
+    status "tinyint unsigned" [note: '0 = not_running, 1 = running, 2 = error, 3 = installing, 4 = warning (for example a limit is almost reached)']
+    message varchar(255)
+    created_at timestamp [null]
+    updated_at timestamp [null]
+    deleted_at timestamp [null]
+
+    Indexes
+    {
+        id [pk]
+    }
 }
