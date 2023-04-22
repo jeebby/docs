@@ -136,7 +136,7 @@ Table sessions [headercolor: #087f23]
     }
 }
 
-Table teams [headercolor: #087f23]
+Table teams [headercolor: #9925be]
 {
     id "bigint unsigned" [increment]
     user_id "bigint unsigned"
